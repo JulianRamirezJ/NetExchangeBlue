@@ -1,13 +1,23 @@
 import socket
-import config
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((config.HOST, config.PORT))
+class ExchangeConnector:
 
-message = 'Hello, server!'
-client_socket.sendall(message.encode())
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-response = client_socket.recv(1024).decode()
-print('Server response:', response)
+    def connect_server(self):
+        self.connection.connect((self.host, self.port))
+        return self.connection
 
-client_socket.close()
+    def disconnect(self):
+        self.connection.close()
+
+    def send_message(self, message):
+        self.connection.sendall(message.encode())
+
+    def receive_message(self):
+        response = self.connection.recv(1024).decode()
+        print('Server response:', response)
+        return response

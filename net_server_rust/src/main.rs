@@ -5,13 +5,15 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver, channel};
 
-fn send_loop(rx: Receiver<String>, streams: Arc<Mutex<HashMap<String, TcpStream>>>) -> io::Result<()> {
+fn send_loop(rx: Receiver<(String,String)>, streams: Arc<Mutex<HashMap<String, TcpStream>>>) -> io::Result<()> {
     loop {
         match rx.recv() {
-            Ok(message) => {
+            Ok((addr, message)) => {
                 let mut streams = streams.lock().unwrap();
-                for (_, stream) in streams.iter_mut() {
-                    stream.write_all(message.as_bytes())?;
+                for (address, stream) in streams.iter_mut() {
+                    if *address != addr {
+                        stream.write_all(message.as_bytes())?;
+                    }
                 }
             }
             Err(_) => continue,
@@ -19,14 +21,15 @@ fn send_loop(rx: Receiver<String>, streams: Arc<Mutex<HashMap<String, TcpStream>
     }
 }
 
-fn receive_loop(mut stream: TcpStream, tx: Sender<String>) -> io::Result<()> 
+fn receive_loop(mut stream: TcpStream, tx: Sender<(String,String)>) -> io::Result<()> 
 {
     loop {
         let mut buffer = [0; 1024];
         match stream.read(&mut buffer) {
             Ok(bytes_read) if bytes_read > 0 => {
                 let message = String::from_utf8_lossy(&buffer[..bytes_read]).trim().to_string();
-                tx.send(message.clone()).unwrap();
+                //tx.send(message.clone()).unwrap()
+                tx.send((stream.peer_addr()?.to_string(), message.clone())).unwrap();
                 println!("Received message: {}\n", message);
             }
             Ok(_) => continue,
@@ -37,7 +40,7 @@ fn receive_loop(mut stream: TcpStream, tx: Sender<String>) -> io::Result<()>
 }
 
 fn main() -> io::Result<()>{
-    let (tx, rx): (Sender<String>, Receiver<String>) = channel();
+    let (tx, rx): (Sender<(String, String)>, Receiver<(String, String)>) = channel();
     let listener: TcpListener = TcpListener::bind("127.0.0.1:12345")?;
     let streams: Arc<Mutex<HashMap<String, TcpStream>>> = Arc::new(Mutex::new(HashMap::new()));
 

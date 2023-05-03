@@ -1,23 +1,32 @@
-use std::io;
+use std::collections::HashMap;
+use std::io::{self, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
 use std::thread;
-use std::io::prelude::*;
-use std::net::{TcpListener, TcpStream, Shutdown};
+use std::sync::mpsc::{Sender, Receiver, channel};
 
-fn send_loop(mut stream: TcpStream) -> std::io::Result<()> {
-    loop{
-        let mut name = String::new();
-        io::stdin().read_line(&mut name)
-            .expect("Failed to read line");
-        stream.write_all(name.as_bytes())?;
+fn send_loop(rx: Receiver<String>, streams: Arc<Mutex<HashMap<String, TcpStream>>>) -> io::Result<()> {
+    loop {
+        match rx.recv() {
+            Ok(message) => {
+                let mut streams = streams.lock().unwrap();
+                for (_, stream) in streams.iter_mut() {
+                    stream.write_all(message.as_bytes())?;
+                }
+            }
+            Err(_) => continue,
+        }
     }
 }
 
-fn receive_loop(mut stream: TcpStream) -> std::io::Result<()> {
+fn receive_loop(mut stream: TcpStream, tx: Sender<String>) -> io::Result<()> 
+{
     loop {
         let mut buffer = [0; 1024];
         match stream.read(&mut buffer) {
             Ok(bytes_read) if bytes_read > 0 => {
                 let message = String::from_utf8_lossy(&buffer[..bytes_read]).trim().to_string();
+                tx.send(message.clone()).unwrap();
                 println!("Received message: {}\n", message);
             }
             Ok(_) => continue,
@@ -27,22 +36,29 @@ fn receive_loop(mut stream: TcpStream) -> std::io::Result<()> {
     Ok(())
 }
 
-fn main() -> std::io::Result<()>{
+fn main() -> io::Result<()>{
+    let (tx, rx): (Sender<String>, Receiver<String>) = channel();
     let listener: TcpListener = TcpListener::bind("127.0.0.1:12345")?;
+    let streams: Arc<Mutex<HashMap<String, TcpStream>>> = Arc::new(Mutex::new(HashMap::new()));
+
+    let streams_clone = streams.clone(); 
+    let send_handle = thread::spawn(move ||  send_loop(rx, streams_clone));
 
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                println!("New client connected: {}", stream.peer_addr()?);
+                let peer_addr = stream.peer_addr()?.to_string();
+                println!("New client connected: {}", peer_addr);
+                streams.lock().unwrap().insert(peer_addr.clone(), stream.try_clone().unwrap());
                 let s_stream = stream.try_clone().unwrap();
-                let handle = thread::spawn(|| receive_loop(stream));
-                let send = thread::spawn(|| send_loop(s_stream));
+                let tx_c = tx.clone();
+                let _handle = thread::spawn(|| receive_loop(s_stream, tx_c));
             }
             Err(e) => {
                 println!("Error while accepting connection: {}", e);
             }
         }
     }
-
+    send_handle.join().unwrap();
     Ok(())
 }

@@ -4,9 +4,10 @@ import traceback
 
 
 class ExchangeConnector:
-    def __init__(self, host, port):
+    def __init__(self, host, port, name):
         self.host = host
         self.port = port
+        self.name = name
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect_server(self):
@@ -21,12 +22,13 @@ class ExchangeConnector:
         self.connection.close()
 
     def send_message(self, message):
-        self.connection.sendall(message.encode())
+        msg = self.name + ":" + message
+        self.connection.sendall(msg.encode())
 
     def receive_loop(self):
         while True:
             response = self.connection.recv(1024).decode()
-            print('Server response:', response)
+            print('\n', response)
 
     def start_receive_thread(self):
         t = threading.Thread(target=self.receive_loop, daemon=True)

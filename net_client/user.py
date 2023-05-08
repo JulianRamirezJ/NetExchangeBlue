@@ -2,7 +2,8 @@ import config
 import client
 
 if __name__ == '__main__':
-    connector = client.ExchangeConnector(config.HOST, config.PORT)
+    name = input("Type your name: ")
+    connector = client.ExchangeConnector(config.HOST, config.PORT, name)
     connector.connect_server()
     connector.start_receive_thread()
 

@@ -5,7 +5,10 @@ use std::sync::mpsc::Receiver;
 use std::net::TcpStream;
 use rayon::prelude::*;
 
-pub fn send_loop(rx: Receiver<(String,String)>, streams: Arc<Mutex<HashMap<String, TcpStream>>>) -> io::Result<()> 
+pub fn send_loop(
+    rx: Receiver<(String,String)>,
+    streams: Arc<Mutex<HashMap<String, TcpStream>>>
+) -> io::Result<()> 
 {
     loop {
         match rx.recv() {

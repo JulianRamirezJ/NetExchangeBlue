@@ -10,7 +10,11 @@ mod sender;
 use receiver::receive_loop;
 use sender::send_loop;
 
-fn handle_connection(stream: TcpStream, tx: Sender<(String, String)>, streams: Arc<Mutex<HashMap<String, TcpStream>>>) 
+fn handle_connection(
+    stream: TcpStream, 
+    tx: Sender<(String, String)>, 
+    streams: Arc<Mutex<HashMap<String, TcpStream>>>,
+) 
 {
     let peer_addr = stream.peer_addr().unwrap().to_string();
     println!("New client connected: {}", peer_addr);

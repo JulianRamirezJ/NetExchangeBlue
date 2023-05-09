@@ -1,5 +1,9 @@
 # NetExchangeBlue
 
+## Integrantes
+### - Julian Andres Ramirez Jimenez
+### - Daniel Arango Hoyos
+
 Este proyecto consiste en desarrollar un chat por línea de comandos que permita la comunicación entre diferentes clientes a través de dos protocolos de comunicación: TCP con sockets y Bluetooth. En esencia, consta de dos servidores, uno para la comunicación a través de sockets hecho en Rust y desplegado en una instancia de Compute Engine de GCP, y otro para la comunicación Bluetooth hecho en Go que se conecta con el servidor de sockets a través de sockets. Además, se han desarrollado clientes que pueden conectarse a ambos servidores, permitiendo la comunicación entre múltiples clientes de ambos tipos. Los clientes de sockets se han implementado en Python, mientras que los de Bluetooth se han hecho en Go. El resultado final es un sistema que permite el envío sincrónico de mensajes entre diferentes clientes conectados a cualquiera de los servidores.
 
 

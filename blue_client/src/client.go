@@ -12,12 +12,26 @@ import (
 func Run(name string) {
 	// Configura el puerto serie Bluetooth
 	client_name := name
-	port_config := &serial.Config{Name: "/dev/pts/1", Baud: 9600}
+	port_config := &serial.Config{Name: BLUEPORT, Baud: 9600}
 	bluetooth, err := serial.OpenPort(port_config)
 	if err != nil {
 		fmt.Println("Error al abrir el puerto Bluetooth:", err)
 		return
 	}
+
+	go func() {
+		for {
+			buffer := make([]byte, 128)
+			numBytes, err := bluetooth.Read(buffer)
+			if err != nil {
+				fmt.Println("Error al leer los datos del Bluetooth:", err)
+				continue
+			}
+
+			// Enviar el mensaje a todos los clientes conectados
+			fmt.Println("(Server): " + string(buffer[:numBytes]) + " recibido.")
+		}
+	}()
 
 	// Envia un mensaje al servidor
 	scanner := bufio.NewScanner(os.Stdin)

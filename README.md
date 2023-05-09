@@ -5,5 +5,5 @@ como lo es tcp con sockets y bluetooth. Nuestro proyecto consta basicamente de d
 
 A continuación se presenta la arquitectura para la solución implmentada en el proyecto:
 
-![NetExchangeBlue drawio](https://user-images.githubusercontent.com/57159295/236983173-2c0738eb-4000-47ed-b3ee-2120adf8165c.png
+![NetExchangeBlue drawio](https://user-images.githubusercontent.com/57159295/236983173-2c0738eb-4000-47ed-b3ee-2120adf8165c.png)
 

@@ -9,10 +9,11 @@ import (
 	"github.com/tarm/serial"
 )
 
-func Run() {
+func Run(name string) {
 	// Configura el puerto serie Bluetooth
-	config := &serial.Config{Name: "/dev/pts/3", Baud: 9600}
-	bluetooth, err := serial.OpenPort(config)
+	client_name := name
+	port_config := &serial.Config{Name: "/dev/pts/1", Baud: 9600}
+	bluetooth, err := serial.OpenPort(port_config)
 	if err != nil {
 		fmt.Println("Error al abrir el puerto Bluetooth:", err)
 		return
@@ -21,9 +22,10 @@ func Run() {
 	// Envia un mensaje al servidor
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Escriba su mensaje: ")
+		fmt.Printf("(%s) Escriba su mensaje: ", client_name)
 		if scanner.Scan() {
-			message := scanner.Text()
+			input := scanner.Text()
+			message := client_name + "::" + input
 			_, err = bluetooth.Write([]byte(message))
 			if err != nil {
 				fmt.Println("Error al enviar los datos al Bluetooth:", err)

@@ -29,7 +29,7 @@ func Run(name string) {
 			}
 
 			// Enviar el mensaje a todos los clientes conectados
-			fmt.Println("(Server): " + string(buffer[:numBytes]) + " recibido.")
+			fmt.Println("\n(Server): " + string(buffer[:numBytes]) + " recibido.")
 		}
 	}()
 

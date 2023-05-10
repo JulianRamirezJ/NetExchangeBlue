@@ -34,7 +34,7 @@ func (e *ExchangeConnector) sendMessage(message string) {
 	}
 }
 
-func (e *ExchangeConnector) receiveLoop() {
+func (e *ExchangeConnector) receiveLoop(messages chan []byte) {
 	for {
 		buffer := make([]byte, 128)
 		numBytes, err := e.connection.Read(buffer)
@@ -44,9 +44,10 @@ func (e *ExchangeConnector) receiveLoop() {
 			return
 		}
 		fmt.Println("(Net): " + string(buffer[:numBytes]) + " recibido.")
+		messages <- append(buffer[:numBytes])
 	}
 }
 
-func (e *ExchangeConnector) startReceiveThread() {
-	go e.receiveLoop()
+func (e *ExchangeConnector) startReceiveThread(messages chan []byte) {
+	go e.receiveLoop(messages)
 }

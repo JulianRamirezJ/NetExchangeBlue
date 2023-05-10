@@ -19,7 +19,7 @@ func Run() {
 
 	exchange := &ExchangeConnector{host: HOST, port: PORT}
 	exchange.connectServer()
-	exchange.startReceiveThread()
+	exchange.startReceiveThread(messages)
 
 	// Escucha los datos entrantes
 	go func() {
